@@ -8,6 +8,7 @@ import (
 	"errors"
 	"io"
 	"sync"
+	"time"
 
 	blocks "github.com/ipfs/go-block-format"
 	cid "github.com/ipfs/go-cid"
@@ -274,6 +275,7 @@ func getBlocks(ctx context.Context, ks []cid.Cid, bs blockstore.Blockstore, fget
 		defer close(out)
 
 		k := 0
+		start := time.Now()
 		for _, c := range ks {
 			// hash security
 			if err := verifcid.ValidateCid(c); err == nil {
@@ -283,6 +285,11 @@ func getBlocks(ctx context.Context, ks []cid.Cid, bs blockstore.Blockstore, fget
 				log.Errorf("unsafe CID (%s) passed to blockService.GetBlocks: %s", c, err)
 			}
 		}
+		elapsed := time.Now().Sub(start)
+		log.LogKV(ctx,
+			"event", "verifcid.ValidateCid",
+			"duration", elapsed,
+		)
 		ks = ks[:k]
 
 		var misses []cid.Cid
